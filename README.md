@@ -9,6 +9,7 @@ to make the shutters go halfway (50%) for example. So I built this lib.
 * Ability to set aperture percentage
 * Power outage safe
   * Shutters state saved in EEPROM, completely transparent usage (using 3 bytes)
+    * ESP8266 compatible
 * Automatic recalibration
 
 ## Requirements

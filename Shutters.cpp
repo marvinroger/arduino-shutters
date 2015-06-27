@@ -53,6 +53,9 @@ void Shutters::begin() {
     halt();
     EEPROM.write(EEPROM_CURRENT_LEVEL, 0);
     EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 1);
+    #ifdef ESP8266
+    EEPROM.commit();
+    #endif
     this->current_level = 0;
     byte request_level_eeprom = EEPROM.read(EEPROM_REQUEST_LEVEL);
     if (request_level_eeprom != 0 && request_level_eeprom <= 100) { // EEPROM might have been populated before
@@ -97,6 +100,9 @@ void Shutters::requestLevel(byte request_level) {
   }
   this->request_level = request_level;
   EEPROM.write(EEPROM_REQUEST_LEVEL, request_level);
+  #ifdef ESP8266
+  EEPROM.commit();
+  #endif
 }
 
 void Shutters::stop() {
@@ -116,6 +122,9 @@ byte Shutters::getCurrentLevel() {
 void Shutters::eraseConfig() {
   EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 0);
   EEPROM.write(EEPROM_REQUEST_LEVEL, 0);
+  #ifdef ESP8266
+  EEPROM.commit();
+  #endif
 }
 
 void Shutters::loop() {
@@ -132,6 +141,9 @@ void Shutters::loop() {
       }
       this->time_last_level = millis();
       EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 0);
+      #ifdef ESP8266
+      EEPROM.commit();
+      #endif
     } else {
       log("Target level already equals current level");
     }
@@ -166,6 +178,9 @@ void Shutters::loop() {
           log("Reached target");
           EEPROM.write(EEPROM_CURRENT_LEVEL, this->current_level);
           EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 1);
+          #ifdef ESP8266
+          EEPROM.commit();
+          #endif
         }
       } else if (this->stop_needed != STOP_NONE && this->calibration == -1) {
         byte stop_type = stop_needed; // following halt() resets the stop_needed var
@@ -174,6 +189,9 @@ void Shutters::loop() {
           log("Stop requested");
           EEPROM.write(EEPROM_CURRENT_LEVEL, this->current_level);
           EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 1);
+          #ifdef ESP8266
+          EEPROM.commit();
+          #endif
         } else if(stop_type == STOP_NEW_LEVEL) {
           log("New target");
         }
