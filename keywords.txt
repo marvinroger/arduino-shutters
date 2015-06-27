@@ -1,0 +1,20 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Shutters	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+loop	KEYWORD2
+requestLevel	KEYWORD2
+stop	KEYWORD2
+isMoving	KEYWORD2
+getCurrentLevel	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
