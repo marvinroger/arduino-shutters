@@ -46,6 +46,10 @@ void Shutters::begin() {
   pinMode(this->pin_direction, OUTPUT);
   halt();
 
+  #ifdef ESP8266
+  EEPROM.begin(4); // 4 bytes minimum, only need 3
+  #endif
+
   if(!EEPROM.read(EEPROM_LAST_LEVEL_KNOWN)) {
     log("Current level unsure, calibrating...");
     up();
