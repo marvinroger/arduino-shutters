@@ -39,6 +39,7 @@ public:
   void stop();
   bool isMoving();
   byte getCurrentLevel();
+  void eraseConfig();
 };
 
 #endif

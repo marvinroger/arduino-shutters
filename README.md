@@ -23,7 +23,6 @@ to make the shutters go halfway (50%) for example. So I built this lib.
 
 ## Hardware
 
-
 <table>
   <tr>
     <th>Relay</th>
@@ -86,3 +85,9 @@ Return whether the shutters are currently moving or not.
 ### byte .getCurrentLevel ()
 
 Return whether the shutters are currently moving or not. Might be +- 1% if the shutters are moving.
+
+### void .eraseConfig ()
+
+Erase data stored in EEPROM, for example for a reset routine.
+Once erased, don't forget to restart/reset the Arduino, otherwise EEPROM might
+be rewritten if `requestLevel` is called for example.

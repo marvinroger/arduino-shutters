@@ -55,7 +55,7 @@ void Shutters::begin() {
     EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 1);
     this->current_level = 0;
     byte request_level_eeprom = EEPROM.read(EEPROM_REQUEST_LEVEL);
-    if (request_level_eeprom != 0) {
+    if (request_level_eeprom != 0 && request_level_eeprom <= 100) { // EEPROM might have been populated before
       this->request_level = request_level_eeprom;
     }
   } else {
@@ -111,6 +111,11 @@ bool Shutters::isMoving() {
 
 byte Shutters::getCurrentLevel() {
   return this->current_level;
+}
+
+void Shutters::eraseConfig() {
+  EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 0);
+  EEPROM.write(EEPROM_REQUEST_LEVEL, 0);
 }
 
 void Shutters::loop() {
