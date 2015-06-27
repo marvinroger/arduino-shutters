@@ -70,7 +70,7 @@ Handle the shutters. Must be called in `loop()`. **Don't call `delay()` in loop(
 
 ### void .requestLevel (byte percentage)
 
-* **pin_move**: Percentage the shutters must go to. If not 0 <= `percentage` <= 100, nothing will be done
+* **percentage**: Percentage the shutters must go to. If not 0 <= `percentage` <= 100, nothing will be done
 
 ### void .stop ()
 
