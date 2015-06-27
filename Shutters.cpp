@@ -66,7 +66,7 @@ void Shutters::begin() {
 void Shutters::up() {
   this->moving = true;
   this->direction = DIRECTION_UP;
-  digitalWrite(this->pin_direction, this->inactive);
+  digitalWrite(this->pin_direction, this->active);
   digitalWrite(this->pin_move, this->active);
   log("Up");
 }
@@ -75,7 +75,7 @@ void Shutters::down() {
   this->moving = true;
   this->direction = DIRECTION_DOWN;
   digitalWrite(this->pin_direction, this->inactive);
-  digitalWrite(this->pin_move, this->inactive);
+  digitalWrite(this->pin_move, this->active);
   log("Down");
 }
 
