@@ -138,16 +138,17 @@ void Shutters::loop() {
     this->request_level = 255;
 
     if (this->target_level != this->current_level) {
+      EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 0);
+      #ifdef ESP8266
+      EEPROM.commit();
+      #endif
+
       if (this->target_level > this->current_level) {
         down();
       } else {
         up();
       }
       this->time_last_level = millis();
-      EEPROM.write(EEPROM_LAST_LEVEL_KNOWN, 0);
-      #ifdef ESP8266
-      EEPROM.commit();
-      #endif
     } else {
       log("Target level already equals current level");
     }
