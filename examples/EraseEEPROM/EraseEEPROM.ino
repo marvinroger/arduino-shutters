@@ -15,7 +15,7 @@ void setup(void)
   EEPROM.begin(4); // Only one byte cleared, but 4 is the minimum for begin()
   #endif
 
-  EEPROM.write(EEPROM_POSITION, 0);
+  EEPROM.write(EEPROM_OFFSET, 0);
 
   #ifdef ESP8266
   EEPROM.commit();
