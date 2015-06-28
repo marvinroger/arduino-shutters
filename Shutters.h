@@ -8,6 +8,9 @@ enum Stop : byte { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
 
 enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
 
+const byte FLAG_KNOWN = 0x80;
+const byte MASK_CURRENT_LEVEL = 0x7F;
+
 class Shutters {
 private:
   byte current_level;
@@ -31,15 +34,19 @@ private:
   void up();
   void down();
   void halt();
+  bool savedIsLastLevelKnown();
+  void saveLastLevelUnknown();
+  byte savedCurrentLevel();
+  void saveCurrentLevelAndKnown(byte);
 public:
   Shutters(byte, byte, float, bool = false, byte = 0);
-  void begin();
+  bool begin();
   void loop();
   void requestLevel(byte);
   void stop();
-  bool isMoving();
-  byte getCurrentLevel();
-  void eraseConfig();
+  bool areMoving();
+  byte currentLevel();
+  void eraseSavedState();
 };
 
 #endif

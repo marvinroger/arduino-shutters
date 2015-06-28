@@ -12,8 +12,9 @@ begin	KEYWORD2
 loop	KEYWORD2
 requestLevel	KEYWORD2
 stop	KEYWORD2
-isMoving	KEYWORD2
-getCurrentLevel	KEYWORD2
+areMoving	KEYWORD2
+currentLevel	KEYWORD2
+eraseSavedState	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
