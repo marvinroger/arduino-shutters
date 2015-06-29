@@ -84,7 +84,7 @@ Note that if `percentage` == 0 || `percentage` == 100, the shutters will recalib
 
 Stop the shutters.
 
-### bool .areMoving ()
+### bool .moving ()
 
 Return whether the shutters are currently moving or not.
 

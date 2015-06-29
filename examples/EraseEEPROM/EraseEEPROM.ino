@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <EEPROM.h>
 
 #define EEPROM_OFFSET 0 // Set an offset if you already use a part of the EEPROM

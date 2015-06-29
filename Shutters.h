@@ -5,46 +5,50 @@ const int CALIBRATION_LEVELS = 3;
 const int LEVELS = 100;
 
 enum Stop : byte { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
-
 enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
+const byte REQUEST_NONE = 255; // Request must be between 0 and 100, so np
+const byte CALIBRATION_NONE = 255; // CALIBRATION_LEVELS should not be 255, np
 
+const byte EEPROM_POSITION = 0;
 const byte FLAG_KNOWN = 0x80;
 const byte MASK_CURRENT_LEVEL = 0x7F;
 
 class Shutters {
 private:
-  byte current_level;
-  bool moving;
-  byte target_level;
-  byte request_level;
-  byte stop_needed;
-  unsigned long time_last_level;
-  bool direction;
-  int calibration;
+  byte current_level_;
+  bool moving_;
+  byte target_level_;
+  byte request_level_;
+  Stop stop_needed_;
+  unsigned long time_last_level_;
+  Direction direction_;
+  byte calibration_;
 
-  byte pin_move;
-  byte pin_direction;
-  float delay_total;
-  float delay_one_level;
-  uint32_t active;
-  uint32_t inactive;
+  byte eeprom_position_;
 
-  void log(const char*);
-  void log(String);
+  byte pin_move_;
+  byte pin_direction_;
+  float delay_total_;
+  float delay_one_level_;
+  uint32_t active_;
+  uint32_t inactive_;
+
+  void log(const char* text);
+  void log(String text);
   void up();
   void down();
   void halt();
   bool savedIsLastLevelKnown();
   void saveLastLevelUnknown();
   byte savedCurrentLevel();
-  void saveCurrentLevelAndKnown(byte);
+  void saveCurrentLevelAndKnown(byte level);
 public:
-  Shutters(byte, byte, float, bool = false, byte = 0);
+  Shutters(byte pin_move, byte pin_direction, float delay_total, bool active_low = false, byte eeprom_offset = 0);
   bool begin();
   void loop();
-  void requestLevel(byte);
+  void requestLevel(byte level);
   void stop();
-  bool areMoving();
+  bool moving();
   byte currentLevel();
   void eraseSavedState();
 };

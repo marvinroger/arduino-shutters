@@ -12,7 +12,7 @@ begin	KEYWORD2
 loop	KEYWORD2
 requestLevel	KEYWORD2
 stop	KEYWORD2
-areMoving	KEYWORD2
+moving	KEYWORD2
 currentLevel	KEYWORD2
 eraseSavedState	KEYWORD2
 
