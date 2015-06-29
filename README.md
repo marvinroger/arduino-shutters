@@ -4,8 +4,6 @@ This Arduino library allows non-smart roller-shutters to be controlled using tim
 Using relays, it is easy to make shutters go up and down. But I wanted to be able
 to make the shutters go halfway (50%) for example. So I built this lib.
 
-**:warning: API/EEPROM storage not stable yet**
-
 ## Features
 
 * Ability to set aperture percentage
@@ -18,6 +16,16 @@ to make the shutters go halfway (50%) for example. So I built this lib.
 
 * 2 relays
 * Measure as precisely as possible the time of a full course in seconds
+
+## Notes
+
+### EEPROM lifetime
+
+An Arduino EEPROM cell (byte) is rated for 100 000 erase cycles.
+This library is optimized to use the EEPROM as little as possible.
+Each time you use the `requestLevel` or `stop` functions, 1 erase happens.
+To illustrate that, let's say you open and close your shutters 4 times a day.
+The EEPROM won't die until at least `100 000/365/4 ~= 68.5` years — this should be enough, nope? —.
 
 ## Installation
 
@@ -90,7 +98,7 @@ Return whether the shutters are currently moving or not.
 
 ### byte .currentLevel ()
 
-Return whether the current level of the shutters. Might be +/- 1% if the shutters are moving.
+Return the current level of the shutters. Might be +/- 1% if the shutters are moving.
 
 ### void .eraseSavedState ()
 
