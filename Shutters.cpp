@@ -13,7 +13,7 @@ void Shutters::log(String text) {
   return log((const char*)text.c_str());
 }
 
-Shutters::Shutters(byte pin_move, byte pin_direction, float delay_total, bool active_low, byte eeprom_offset) {
+Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset) {
   this->moving_ = false;
   this->request_level_ = REQUEST_NONE;
   this->stop_needed_ = STOP_NONE;
@@ -23,10 +23,9 @@ Shutters::Shutters(byte pin_move, byte pin_direction, float delay_total, bool ac
 
   this->delay_total_ = delay_total;
   this->delay_one_level_ = delay_total / LEVELS;
-  this->pin_move_ = pin_move;
-  this->pin_direction_ = pin_direction;
-  this->active_ = active_low ? LOW : HIGH;
-  this->inactive_ = active_low ? HIGH : LOW;
+  this->upCallback_ = upCallback;
+  this->downCallback_ = downCallback;
+  this->haltCallback_ = haltCallback;
 }
 
 bool Shutters::savedIsLastLevelKnown() {
@@ -67,10 +66,6 @@ void Shutters::eraseSavedState() {
 }
 
 bool Shutters::begin() {
-  pinMode(this->pin_move_, OUTPUT);
-  pinMode(this->pin_direction_, OUTPUT);
-  halt();
-
   #ifdef ESP8266
   EEPROM.begin(4); // 4 bytes minimum, only need 1
   #endif
@@ -92,16 +87,14 @@ bool Shutters::begin() {
 void Shutters::up() {
   this->moving_ = true;
   this->direction_ = DIRECTION_UP;
-  digitalWrite(this->pin_direction_, this->active_);
-  digitalWrite(this->pin_move_, this->active_);
+  this->upCallback_();
   log("Up");
 }
 
 void Shutters::down() {
   this->moving_ = true;
   this->direction_ = DIRECTION_DOWN;
-  digitalWrite(this->pin_direction_, this->inactive_);
-  digitalWrite(this->pin_move_, this->active_);
+  this->downCallback_();
   log("Down");
 }
 
@@ -109,8 +102,7 @@ void Shutters::halt() {
   this->stop_needed_ = STOP_NONE;
   this->moving_ = false;
   this->calibration_ = CALIBRATION_NONE;
-  digitalWrite(this->pin_move_, this->inactive_);
-  digitalWrite(this->pin_direction_, this->inactive_); // To save energy
+  this->haltCallback_();
   log("Halt");
 }
 

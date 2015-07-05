@@ -11,10 +11,10 @@ to make the shutters go halfway (50%) for example. So I built this lib.
   * Shutters state saved in EEPROM (using 1 byte)
     * ESP8266 compatible
 * Automatic recalibration
+* Flexible control method (might use relays, RF...)
 
-## Requirements
+## Requirement
 
-* 2 relays
 * Measure as precisely as possible the time of a full course in seconds
 
 ## Notes
@@ -34,36 +34,16 @@ The EEPROM won't die until at least `100 000/365/4 ~= 68.5` years — this shoul
 3. Be sure that the EEPROM byte you want to use (0 by default) is clear.
 You can load the EraseEEPROM example sketch to achieve this
 
-## Hardware
-
-<table>
-  <tr>
-    <th>Relay</th>
-    <th>Active</th>
-    <th>Inactive</th>
-  </tr>
-  <tr>
-    <td>Move</td>
-    <td>Move</td>
-    <td>Don't move</td>
-  </tr>
-  <tr>
-    <td>Direction</td>
-    <td>Up</td>
-    <td>Down</td>
-  </tr>
-</table>
-
 ## API
 
 See examples folder for examples.
 
-#### Shutters (byte `pin_move`, byte `pin_direction`, float `time_full_course`, bool `active_low` = false, byte `eeprom_offset` = 0)
+#### Shutters (float `time_full_course`, void (\*`upCallback`)(void), void (\*`downCallback`)(void), void (\*`haltCallback`)(void), byte `eeprom_offset` = 0)
 
-* **`pin_move`**: Arduino Pin on which the move relay is
-* **`pin_direction`**: Arduino Pin on which the direction relay is
 * **`time_full_course`**: Time in seconds to do a full shutters course
-* **`active_low`**: Some relays are active LOW. Default to false (active HIGH)
+* **`upCallback`**: Function to execute for the shutters to go up
+* **`downCallback`**: Function to execute for the shutters to go down
+* **`haltCallback`**: Function to execute for the shutters to halt
 * **`eeprom_offset`**: Maybe your code already uses EEPROM, so you can put an offset. Default to 0
 
 #### bool .begin ()
@@ -71,11 +51,9 @@ See examples folder for examples.
 Setup the shutters. Must be called once in `setup()`.
 Return: read below.
 
-**Each boot**: Set `pin_move` and `pin_direction` to `OUTPUT`.
-
 **First boot**: Initialize the EEPROM and put the shutters at their minimum position. This will be blocking for `time_full_course` seconds. Return true.
 
-**Subsequent boots**: If the Arduino was powered off while the shutters were not moving, nothing is done because the current state of the shutters is known and false is returned. Else, it will put the shutters at their minimum position so the level will be known again (being 0%), blocking for a maximum of `time_full_course` seconds and true will be returned.
+**Subsequent boots**: If the Arduino was powered off while the shutters were not moving, nothing is done because the current state of the shutters is known and false is returned. Else, it will put the shutters at their minimum position so the level will be known again (being 0%), blocking for `time_full_course` seconds and true will be returned.
 
 #### void .loop ()
 

@@ -1,6 +1,8 @@
 #ifndef Shutters_h
 #define Shutters_h
 
+#include <Arduino.h>
+
 const int CALIBRATION_LEVELS = 3;
 const int LEVELS = 100;
 
@@ -26,12 +28,11 @@ private:
 
   byte eeprom_position_;
 
-  byte pin_move_;
-  byte pin_direction_;
   float delay_total_;
   float delay_one_level_;
-  uint32_t active_;
-  uint32_t inactive_;
+  void (*upCallback_)(void);
+  void (*downCallback_)(void);
+  void (*haltCallback_)(void);
 
   void log(const char* text);
   void log(String text);
@@ -43,7 +44,7 @@ private:
   byte savedCurrentLevel();
   void saveCurrentLevelAndKnown(byte level);
 public:
-  Shutters(byte pin_move, byte pin_direction, float delay_total, bool active_low = false, byte eeprom_offset = 0);
+  Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset = 0);
   bool begin();
   void loop();
   void requestLevel(byte level);

@@ -1,10 +1,29 @@
 #include <EEPROM.h>
 #include <Shutters.h>
 
-Shutters shutters(2, 3, 25.1); // move and direction relays on pin 2 and 3, 25.1 secs a full course
+void shuttersUp(void)
+{
+  Serial.println("Shutters going up.");
+  // TODO: Implement the code for the shutters to go up
+}
+
+void shuttersDown(void)
+{
+  Serial.println("Shutters going down.");
+  // TODO: Implement the code for the shutters to go down
+}
+
+void shuttersHalt(void)
+{
+  Serial.println("Shutters halted.");
+  // TODO: Implement the code for the shutters to halt
+}
+
+Shutters shutters(25.1, shuttersUp, shuttersDown, shuttersHalt);
 
 void setup(void)
 {
+  Serial.begin(9600);
   shutters.begin(); // Might take some time first time, as it will open the shutters
   shutters.requestLevel(50); // Go to 50%
 }
