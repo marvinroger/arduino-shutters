@@ -20,7 +20,7 @@ void setup(void)
   EEPROM.commit();
   #endif
 
-  Serial.println("Done.")
+  Serial.println("Done.");
 }
 
 void loop(void)
