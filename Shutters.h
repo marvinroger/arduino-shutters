@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-const int CALIBRATION_LEVELS = 3;
+const int CALIBRATION_LEVELS = 5;
 const int LEVELS = 100;
 
 enum Stop : byte { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
