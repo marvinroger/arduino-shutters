@@ -24,6 +24,9 @@ Shutters shutters(25.1, shuttersUp, shuttersDown, shuttersHalt);
 void setup(void)
 {
   Serial.begin(9600);
+  #ifdef ESP8266
+  EEPROM.begin(4); // Only one byte will be used, but 4 is the minimum for ESP8266 begin()
+  #endif
   shutters.begin(); // Might take some time first time, as it will open the shutters
   shutters.requestLevel(50); // Go to 50%
 }
