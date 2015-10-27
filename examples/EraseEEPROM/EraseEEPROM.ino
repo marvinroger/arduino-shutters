@@ -6,18 +6,15 @@ void setup(void)
 {
   #ifdef ESP8266
   Serial.begin(115200);
+  EEPROM.begin(4); // Only one byte cleared, but 4 is the minimum for begin()
   #else
   Serial.begin(9600);
-  #endif
-
-  #ifdef ESP8266
-  EEPROM.begin(4); // Only one byte cleared, but 4 is the minimum for begin()
   #endif
 
   EEPROM.write(EEPROM_OFFSET, 0);
 
   #ifdef ESP8266
-  EEPROM.commit();
+  EEPROM.end();
   #endif
 
   Serial.println("Done.");
