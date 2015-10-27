@@ -66,10 +66,6 @@ void Shutters::eraseSavedState() {
 }
 
 bool Shutters::begin() {
-  #ifdef ESP8266
-  EEPROM.begin(4); // 4 bytes minimum, only need 1
-  #endif
-
   if(!savedIsLastLevelKnown()) {
     log("Current level unsure, calibrating...");
     up();
