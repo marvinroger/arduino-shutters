@@ -19,6 +19,7 @@ class Shutters {
 private:
   byte current_level_;
   bool moving_;
+  bool reached_;
   byte target_level_;
   byte request_level_;
   Stop stop_needed_;
@@ -50,6 +51,7 @@ public:
   void requestLevel(byte level);
   void stop();
   bool moving();
+  bool reached();
   byte currentLevel();
   void eraseSavedState();
 };

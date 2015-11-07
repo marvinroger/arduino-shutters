@@ -15,6 +15,7 @@ void Shutters::log(String text) {
 
 Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset) {
   this->moving_ = false;
+  this->reached_ = false
   this->request_level_ = REQUEST_NONE;
   this->stop_needed_ = STOP_NONE;
   this->calibration_ = CALIBRATION_NONE;
@@ -126,6 +127,12 @@ byte Shutters::currentLevel() {
   return this->current_level_;
 }
 
+bool Shutters::reached() {
+  bool reached = this->reached_;
+  this->reached_ = false;
+  return reached;
+}
+
 void Shutters::loop() {
   // Init request
   if (this->request_level_ != REQUEST_NONE && this->stop_needed_ == STOP_NONE) {
@@ -174,6 +181,7 @@ void Shutters::loop() {
           halt();
           log("Reached target");
           saveCurrentLevelAndKnown(this->current_level_);
+          this->reached_ = true;
         }
       } else if (this->stop_needed_ != STOP_NONE && this->calibration_ == CALIBRATION_NONE) {
         byte stop_type = this->stop_needed_; // following halt() resets the stop_needed var
@@ -181,6 +189,7 @@ void Shutters::loop() {
         if (stop_type == STOP_HALT) {
           log("Stop requested");
           saveCurrentLevelAndKnown(this->current_level_);
+          this->reached_ = true;
         } else if(stop_type == STOP_NEW_LEVEL) {
           log("New target");
         }

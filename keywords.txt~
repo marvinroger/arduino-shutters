@@ -13,7 +13,6 @@ loop	KEYWORD2
 requestLevel	KEYWORD2
 stop	KEYWORD2
 moving	KEYWORD2
-reached	KEYWORD2
 currentLevel	KEYWORD2
 eraseSavedState	KEYWORD2
 

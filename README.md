@@ -78,6 +78,10 @@ Return whether the shutters are currently moving or not.
 
 Return the current level of the shutters. Might be +/- 1% if the shutters are moving.
 
+#### bool .reached ()
+
+Return whether or not the shutters just reached the latest requested level. For example, if the shutters are at 0% and you requested 100%, `reached()` will be true once, allowing you to report to the controller that the shutters reached the requested level.
+
 #### void .eraseSavedState ()
 
 Erase data stored in EEPROM, for example for a reset routine.
