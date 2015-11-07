@@ -15,7 +15,7 @@ void Shutters::log(String text) {
 
 Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset) {
   this->moving_ = false;
-  this->reached_ = false
+  this->reached_ = false;
   this->request_level_ = REQUEST_NONE;
   this->stop_needed_ = STOP_NONE;
   this->calibration_ = CALIBRATION_NONE;
