@@ -2,38 +2,40 @@
 #define Shutters_h
 
 #include <Arduino.h>
+#include <EEPROM.h>
 
-const int CALIBRATION_LEVELS = 5;
-const int LEVELS = 100;
+namespace ShuttersInternal {
+  const int CALIBRATION_LEVELS = 5;
+  const int LEVELS = 100;
 
-enum Stop : byte { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
-enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
-const byte REQUEST_NONE = 255; // Request must be between 0 and 100, so np
-const byte CALIBRATION_NONE = 255; // CALIBRATION_LEVELS should not be 255, np
+  enum Stop : unsigned char { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
+  enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
+  const unsigned char REQUEST_NONE = 255; // Request must be between 0 and 100, so np
+  const unsigned char CALIBRATION_NONE = 255; // CALIBRATION_LEVELS should not be 255, np
 
-const byte EEPROM_POSITION = 0;
-const byte FLAG_KNOWN = 0x80;
-const byte MASK_CURRENT_LEVEL = 0x7F;
+  const unsigned char FLAG_KNOWN = 0x80;
+  const unsigned char MASK_CURRENT_LEVEL = 0x7F;
+}
 
 class Shutters {
 private:
-  byte current_level_;
-  bool moving_;
-  bool reached_;
-  byte target_level_;
-  byte request_level_;
-  Stop stop_needed_;
-  unsigned long time_last_level_;
-  Direction direction_;
-  byte calibration_;
+  unsigned char _currentLevel;
+  bool _moving;
+  bool _reached;
+  unsigned char _targetLevel;
+  unsigned char _requestLevel;
+  ShuttersInternal::Stop _stopNeeded;
+  unsigned long _timeLastLevel;
+  ShuttersInternal::Direction _direction;
+  unsigned char _calibration;
 
-  byte eeprom_position_;
+  unsigned char _eepromPosition;
 
-  float delay_total_;
-  float delay_one_level_;
-  void (*upCallback_)(void);
-  void (*downCallback_)(void);
-  void (*haltCallback_)(void);
+  float _delayTotal;
+  float _delayOneLevel;
+  void (*_upCallback)(void);
+  void (*_downCallback)(void);
+  void (*_haltCallback)(void);
 
   void log(const char* text);
   void log(String text);
@@ -42,17 +44,17 @@ private:
   void halt();
   bool savedIsLastLevelKnown();
   void saveLastLevelUnknown();
-  byte savedCurrentLevel();
-  void saveCurrentLevelAndKnown(byte level);
+  unsigned char savedCurrentLevel();
+  void saveCurrentLevelAndKnown(unsigned char level);
 public:
-  Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset = 0);
+  Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), unsigned char eeprom_offset = 0);
   bool begin();
   void loop();
-  void requestLevel(byte level);
+  void requestLevel(unsigned char level);
   void stop();
   bool moving();
   bool reached();
-  byte currentLevel();
+  unsigned char currentLevel();
   void eraseSavedState();
 };
 

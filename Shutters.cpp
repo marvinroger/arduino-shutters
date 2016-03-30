@@ -1,6 +1,6 @@
-#include <Arduino.h>
-#include <EEPROM.h>
 #include "Shutters.h"
+
+using namespace ShuttersInternal;
 
 void Shutters::log(const char* text) {
   #ifdef DEBUG
@@ -13,24 +13,23 @@ void Shutters::log(String text) {
   return log((const char*)text.c_str());
 }
 
-Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), byte eeprom_offset) {
-  this->moving_ = false;
-  this->reached_ = false;
-  this->request_level_ = REQUEST_NONE;
-  this->stop_needed_ = STOP_NONE;
-  this->calibration_ = CALIBRATION_NONE;
-
-  this->eeprom_position_ = EEPROM_POSITION + eeprom_offset;
-
-  this->delay_total_ = delay_total;
-  this->delay_one_level_ = delay_total / LEVELS;
-  this->upCallback_ = upCallback;
-  this->downCallback_ = downCallback;
-  this->haltCallback_ = haltCallback;
+Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), unsigned char eeprom_offset)
+: _moving(false)
+, _reached(false)
+, _requestLevel(REQUEST_NONE)
+, _stopNeeded(STOP_NONE)
+, _calibration(CALIBRATION_NONE)
+, _eepromPosition(eeprom_offset)
+, _delayTotal(delay_total)
+, _upCallback(upCallback)
+, _downCallback(downCallback)
+, _haltCallback(haltCallback)
+{
+  this->_delayOneLevel = delay_total / LEVELS;
 }
 
 bool Shutters::savedIsLastLevelKnown() {
-  byte raw_value = EEPROM.read(this->eeprom_position_);
+  unsigned char raw_value = EEPROM.read(this->_eepromPosition);
   if (raw_value & FLAG_KNOWN) {
     return true;
   } else {
@@ -39,28 +38,28 @@ bool Shutters::savedIsLastLevelKnown() {
 }
 
 void Shutters::saveLastLevelUnknown() {
-  byte current_level = savedCurrentLevel();
-  EEPROM.write(this->eeprom_position_, current_level);
+  unsigned char current_level = savedCurrentLevel();
+  EEPROM.write(this->_eepromPosition, current_level);
   #ifdef ESP8266
   EEPROM.commit();
   #endif
 }
 
-byte Shutters::savedCurrentLevel() {
-  byte raw_value = EEPROM.read(this->eeprom_position_);
-  byte value = raw_value & MASK_CURRENT_LEVEL;
+unsigned char Shutters::savedCurrentLevel() {
+  unsigned char raw_value = EEPROM.read(this->_eepromPosition);
+  unsigned char value = raw_value & MASK_CURRENT_LEVEL;
   return value;
 }
 
-void Shutters::saveCurrentLevelAndKnown(byte level) {
-  EEPROM.write(this->eeprom_position_, level | FLAG_KNOWN);
+void Shutters::saveCurrentLevelAndKnown(unsigned char level) {
+  EEPROM.write(this->_eepromPosition, level | FLAG_KNOWN);
   #ifdef ESP8266
   EEPROM.commit();
   #endif
 }
 
 void Shutters::eraseSavedState() {
-  EEPROM.write(this->eeprom_position_, 0);
+  EEPROM.write(this->_eepromPosition, 0);
   #ifdef ESP8266
   EEPROM.commit();
   #endif
@@ -70,126 +69,131 @@ bool Shutters::begin() {
   if(!savedIsLastLevelKnown()) {
     log("Current level unsure, calibrating...");
     up();
-    delay((this->delay_total_ + this->delay_one_level_ * CALIBRATION_LEVELS) * 1000);
+    delay((this->_delayTotal + this->_delayOneLevel * CALIBRATION_LEVELS) * 1000);
     halt();
     saveCurrentLevelAndKnown(0);
-    this->current_level_ = 0;
+    this->_currentLevel = 0;
     return true;
   } else {
-    this->current_level_ = savedCurrentLevel();
+    this->_currentLevel = savedCurrentLevel();
     return false;
   }
 }
 
 void Shutters::up() {
-  this->moving_ = true;
-  this->direction_ = DIRECTION_UP;
-  this->upCallback_();
+  this->_moving = true;
+  this->_direction = DIRECTION_UP;
+  this->_upCallback();
   log("Up");
 }
 
 void Shutters::down() {
-  this->moving_ = true;
-  this->direction_ = DIRECTION_DOWN;
-  this->downCallback_();
+  this->_moving = true;
+  this->_direction = DIRECTION_DOWN;
+  this->_downCallback();
   log("Down");
 }
 
 void Shutters::halt() {
-  this->stop_needed_ = STOP_NONE;
-  this->moving_ = false;
-  this->calibration_ = CALIBRATION_NONE;
-  this->haltCallback_();
+  this->_stopNeeded = STOP_NONE;
+  this->_moving = false;
+  this->_calibration = CALIBRATION_NONE;
+  this->_haltCallback();
   log("Halt");
 }
 
-void Shutters::requestLevel(byte request_level) {
-  if (request_level > 100) {
+void Shutters::requestLevel(unsigned char level) {
+  if (level > 100) {
     return;
   }
-  if (this->moving_) {
-    this->stop_needed_ = STOP_NEW_LEVEL;
+
+  Direction direction = (level > this->_currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
+
+  if (this->_moving && direction == this->_direction) {
+    this->_targetLevel = level;
+  } else {
+    this->_stopNeeded = STOP_NEW_LEVEL;
+    this->_requestLevel = level;
   }
-  this->request_level_ = request_level;
 }
 
 void Shutters::stop() {
-  if (this->moving_) {
-    this->stop_needed_ = STOP_HALT;
+  if (this->_moving) {
+    this->_stopNeeded = STOP_HALT;
   }
 }
 
 bool Shutters::moving() {
-  return this->moving_;
+  return this->_moving;
 }
 
-byte Shutters::currentLevel() {
-  return this->current_level_;
+unsigned char Shutters::currentLevel() {
+  return this->_currentLevel;
 }
 
 bool Shutters::reached() {
-  bool reached = this->reached_;
-  this->reached_ = false;
+  bool reached = this->_reached;
+  this->_reached = false;
   return reached;
 }
 
 void Shutters::loop() {
   // Init request
-  if (this->request_level_ != REQUEST_NONE && this->stop_needed_ == STOP_NONE) {
-    this->target_level_ = this->request_level_;
-    this->request_level_ = REQUEST_NONE;
+  if (this->_requestLevel != REQUEST_NONE && this->_stopNeeded == STOP_NONE) {
+    this->_targetLevel = this->_requestLevel;
+    this->_requestLevel = REQUEST_NONE;
 
-    if (this->target_level_ != this->current_level_) {
+    if (this->_targetLevel != this->_currentLevel) {
       saveLastLevelUnknown();
 
-      if (this->target_level_ > this->current_level_) {
+      if (this->_targetLevel > this->_currentLevel) {
         down();
       } else {
         up();
       }
-      this->time_last_level_ = millis();
+      this->_timeLastLevel = millis();
     } else {
       log("Target level already equals current level");
     }
   }
 
   // Handle request
-  if (this->moving_) {
+  if (this->_moving) {
     unsigned long now = millis();
 
-    if (now - this->time_last_level_ >= this->delay_one_level_ * 1000) {
-      if (this->calibration_ == CALIBRATION_NONE) {
-        if (this->direction_ == DIRECTION_DOWN) {
-          this->current_level_ += 1;
+    if (now - this->_timeLastLevel >= this->_delayOneLevel * 1000) {
+      if (this->_calibration == CALIBRATION_NONE) {
+        if (this->_direction == DIRECTION_DOWN) {
+          this->_currentLevel += 1;
         } else {
-          this->current_level_ -= 1;
+          this->_currentLevel -= 1;
         }
-        log(String("Reached level " + String(this->current_level_)));
+        log(String("Reached level " + String(this->_currentLevel)));
       }
-      this->time_last_level_ = now;
+      this->_timeLastLevel = now;
 
-      if (this->current_level_ == this->target_level_) {
-        if (this->calibration_ != CALIBRATION_NONE) {
-          this->calibration_++;
-          log(String("Calibration " + String(this->calibration_) + "/" + String(CALIBRATION_LEVELS)));
+      if (this->_currentLevel == this->_targetLevel) {
+        if (this->_calibration != CALIBRATION_NONE) {
+          this->_calibration++;
+          log(String("Calibration " + String(this->_calibration) + "/" + String(CALIBRATION_LEVELS)));
         }
 
-        if ((this->current_level_ == 0 || this->current_level_ == 100) && this->calibration_ == CALIBRATION_NONE) {
-          this->calibration_ = 0;
+        if ((this->_currentLevel == 0 || this->_currentLevel == 100) && this->_calibration == CALIBRATION_NONE) {
+          this->_calibration = 0;
           log("Calibrating...");
-        } else if (this->calibration_ == CALIBRATION_NONE || this->calibration_ == CALIBRATION_LEVELS) {
+        } else if (this->_calibration == CALIBRATION_NONE || this->_calibration == CALIBRATION_LEVELS) {
           halt();
           log("Reached target");
-          saveCurrentLevelAndKnown(this->current_level_);
-          this->reached_ = true;
+          saveCurrentLevelAndKnown(this->_currentLevel);
+          this->_reached = true;
         }
-      } else if (this->stop_needed_ != STOP_NONE && this->calibration_ == CALIBRATION_NONE) {
-        byte stop_type = this->stop_needed_; // following halt() resets the stop_needed var
+      } else if (this->_stopNeeded != STOP_NONE && this->_calibration == CALIBRATION_NONE) {
+        unsigned char stop_type = this->_stopNeeded; // following halt() resets the stop_needed var
         halt();
         if (stop_type == STOP_HALT) {
           log("Stop requested");
-          saveCurrentLevelAndKnown(this->current_level_);
-          this->reached_ = true;
+          saveCurrentLevelAndKnown(this->_currentLevel);
+          this->_reached = true;
         } else if(stop_type == STOP_NEW_LEVEL) {
           log("New target");
         }
