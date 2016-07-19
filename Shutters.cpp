@@ -112,7 +112,7 @@ void Shutters::requestLevel(unsigned char level) {
   if (this->_moving && direction == this->_direction) {
     this->_targetLevel = level;
   } else {
-    this->_stopNeeded = STOP_NEW_LEVEL;
+    this->_stopNeeded = STOP_NONE;
     this->_requestLevel = level;
   }
 }
