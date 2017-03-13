@@ -10,8 +10,8 @@ Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCal
 , _state(STATE_IDLE)
 , _stateTime(0)
 , _direction(DIRECTION_UP)
-, _level(LEVEL_NONE),
-, _targetLevel(LEVEL_NONE),
+, _level(LEVEL_NONE)
+, _targetLevel(LEVEL_NONE)
 , _safetyDelay(false)
 , _safetyDelayTime(0)
 , _reset(false)
@@ -20,7 +20,6 @@ Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCal
 , _haltCallback(haltCallback)
 , _getStateCallback(getStateCallback)
 , _setStateCallback(setStateCallback)
-, _calibrationRatio(calibrationRatio)
 {
 }
 
@@ -52,7 +51,7 @@ void Shutters::setLevel(uint8_t level) {
   }
 
   if (_state == STATE_IDLE && level == _level) return;
-  if ((_state == STATE_TARGETING || this._state == STATE_NORMALIZING) && level == _targetLevel) return; // normalizing check useless, but avoid following lines overhead
+  if ((_state == STATE_TARGETING || _state == STATE_NORMALIZING) && level == _targetLevel) return; // normalizing check useless, but avoid following lines overhead
 
   _targetLevel = level;
   Direction direction = _targetLevel > _level ? DIRECTION_DOWN : DIRECTION_UP;

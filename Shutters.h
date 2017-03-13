@@ -7,7 +7,7 @@ namespace ShuttersInternal {
   const uint16_t SAFETY_DELAY = 1 * 1000;
   const uint8_t LEVELS = 100;
 
-  enum State : bool {
+  enum State : uint8_t {
     STATE_IDLE, // not moving
     STATE_RESETTING, // when state not known, goes to 0
     STATE_TARGETING, // when going to target

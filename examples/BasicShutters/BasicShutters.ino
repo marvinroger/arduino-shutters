@@ -1,4 +1,3 @@
-#include <EEPROM.h>
 #include <Shutters.h>
 
 unsigned long courseTime = 30 * 1000;
