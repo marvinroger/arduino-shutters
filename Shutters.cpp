@@ -2,202 +2,166 @@
 
 using namespace ShuttersInternal;
 
-void Shutters::log(const char* text) {
-  #ifdef DEBUG
-  Serial.print("[Shutters] ");
-  Serial.println(text);
-  #endif
-}
-
-void Shutters::log(String text) {
-  return log((const char*)text.c_str());
-}
-
-Shutters::Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), unsigned char eeprom_offset)
-: _moving(false)
-, _reached(false)
-, _requestLevel(REQUEST_NONE)
-, _stopNeeded(STOP_NONE)
-, _calibration(CALIBRATION_NONE)
-, _eepromPosition(eeprom_offset)
-, _delayTotal(delay_total)
+Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio)
+: _courseTime(courseTime)
+, _calibrationRatio(calibrationRatio)
+, _stepTime(courseTime / LEVELS)
+, _calibrationTime(courseTime * calibrationRatio)
+, _state(STATE_IDLE)
+, _stateTime(0)
+, _direction(DIRECTION_UP)
+, _level(LEVEL_NONE)
+, _targetLevel(LEVEL_NONE)
+, _safetyDelay(false)
+, _safetyDelayTime(0)
+, _reset(false)
 , _upCallback(upCallback)
 , _downCallback(downCallback)
 , _haltCallback(haltCallback)
+, _getStateCallback(getStateCallback)
+, _setStateCallback(setStateCallback)
 {
-  this->_delayOneLevel = delay_total / LEVELS;
 }
 
-bool Shutters::savedIsLastLevelKnown() {
-  unsigned char raw_value = EEPROM.read(this->_eepromPosition);
-  if (raw_value & FLAG_KNOWN) {
-    return true;
-  } else {
-    return false;
-  }
+void Shutters::_up() {
+  _upCallback();
 }
 
-void Shutters::saveLastLevelUnknown() {
-  unsigned char current_level = savedCurrentLevel();
-  EEPROM.write(this->_eepromPosition, current_level);
-  #ifdef ESP8266
-  EEPROM.commit();
-  #endif
+void Shutters::_down() {
+  _downCallback();
 }
 
-unsigned char Shutters::savedCurrentLevel() {
-  unsigned char raw_value = EEPROM.read(this->_eepromPosition);
-  unsigned char value = raw_value & MASK_CURRENT_LEVEL;
-  return value;
+void Shutters::_halt() {
+  _haltCallback();
+  _setSafetyDelay();
 }
 
-void Shutters::saveCurrentLevelAndKnown(unsigned char level) {
-  EEPROM.write(this->_eepromPosition, level | FLAG_KNOWN);
-  #ifdef ESP8266
-  EEPROM.commit();
-  #endif
-}
-
-void Shutters::eraseSavedState() {
-  EEPROM.write(this->_eepromPosition, 0);
-  #ifdef ESP8266
-  EEPROM.commit();
-  #endif
+void Shutters::_setSafetyDelay() {
+  _safetyDelayTime = millis();
+  _safetyDelay = true;
 }
 
 bool Shutters::begin() {
-  if(!savedIsLastLevelKnown()) {
-    log("Current level unsure, calibrating...");
-    up();
-    delay((this->_delayTotal + this->_delayOneLevel * CALIBRATION_LEVELS) * 1000);
-    halt();
-    saveCurrentLevelAndKnown(0);
-    this->_currentLevel = 0;
-    return true;
-  } else {
-    this->_currentLevel = savedCurrentLevel();
-    return false;
-  }
+  _level = _getStateCallback();
 }
 
-void Shutters::up() {
-  this->_moving = true;
-  this->_direction = DIRECTION_UP;
-  this->_upCallback();
-  log("Up");
-}
-
-void Shutters::down() {
-  this->_moving = true;
-  this->_direction = DIRECTION_DOWN;
-  this->_downCallback();
-  log("Down");
-}
-
-void Shutters::halt() {
-  this->_stopNeeded = STOP_NONE;
-  this->_moving = false;
-  this->_calibration = CALIBRATION_NONE;
-  this->_haltCallback();
-  log("Halt");
-}
-
-void Shutters::requestLevel(unsigned char level) {
+void Shutters::setLevel(uint8_t level) {
   if (level > 100) {
     return;
   }
 
-  Direction direction = (level > this->_currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
+  if (_state == STATE_IDLE && level == _level) return;
+  if ((_state == STATE_TARGETING || _state == STATE_NORMALIZING) && level == _targetLevel) return; // normalizing check useless, but avoid following lines overhead
 
-  if (this->_moving && direction == this->_direction) {
-    this->_targetLevel = level;
-  } else {
-    this->_stopNeeded = STOP_NEW_LEVEL;
-    this->_requestLevel = level;
+  _targetLevel = level;
+  Direction direction = _targetLevel > _level ? DIRECTION_DOWN : DIRECTION_UP;
+  if (_state == STATE_TARGETING && _direction != direction) {
+    _state = STATE_NORMALIZING;
   }
 }
 
 void Shutters::stop() {
-  if (this->_moving) {
-    this->_stopNeeded = STOP_HALT;
+  if (_state == STATE_IDLE) return;
+
+  _targetLevel = LEVEL_NONE;
+  if (_state == STATE_TARGETING) {
+    _state = STATE_NORMALIZING;
   }
-}
-
-bool Shutters::moving() {
-  return this->_moving;
-}
-
-unsigned char Shutters::currentLevel() {
-  return this->_currentLevel;
-}
-
-bool Shutters::reached() {
-  bool reached = this->_reached;
-  this->_reached = false;
-  return reached;
 }
 
 void Shutters::loop() {
-  // Init request
-  if (this->_requestLevel != REQUEST_NONE && this->_stopNeeded == STOP_NONE) {
-    this->_targetLevel = this->_requestLevel;
-    this->_requestLevel = REQUEST_NONE;
+  if (_reset) return;
 
-    if (this->_targetLevel != this->_currentLevel) {
-      saveLastLevelUnknown();
-
-      if (this->_targetLevel > this->_currentLevel) {
-        down();
-      } else {
-        up();
-      }
-      this->_timeLastLevel = millis();
-    } else {
-      log("Target level already equals current level");
+  if (_safetyDelay) {
+    if (millis() - _safetyDelayTime >= SAFETY_DELAY) {
+      _safetyDelay = false;
     }
+
+    return;
   }
 
-  // Handle request
-  if (this->_moving) {
-    unsigned long now = millis();
+  // here, we're safe for relays
 
-    if (now - this->_timeLastLevel >= this->_delayOneLevel * 1000) {
-      if (this->_calibration == CALIBRATION_NONE) {
-        if (this->_direction == DIRECTION_DOWN) {
-          this->_currentLevel += 1;
-        } else {
-          this->_currentLevel -= 1;
-        }
-        log(String("Reached level " + String(this->_currentLevel)));
-      }
-      this->_timeLastLevel = now;
-
-      if (this->_currentLevel == this->_targetLevel) {
-        if (this->_calibration != CALIBRATION_NONE) {
-          this->_calibration++;
-          log(String("Calibration " + String(this->_calibration) + "/" + String(CALIBRATION_LEVELS)));
-        }
-
-        if ((this->_currentLevel == 0 || this->_currentLevel == 100) && this->_calibration == CALIBRATION_NONE) {
-          this->_calibration = 0;
-          log("Calibrating...");
-        } else if (this->_calibration == CALIBRATION_NONE || this->_calibration == CALIBRATION_LEVELS) {
-          halt();
-          log("Reached target");
-          saveCurrentLevelAndKnown(this->_currentLevel);
-          this->_reached = true;
-        }
-      } else if (this->_stopNeeded != STOP_NONE && this->_calibration == CALIBRATION_NONE) {
-        unsigned char stop_type = this->_stopNeeded; // following halt() resets the stop_needed var
-        halt();
-        if (stop_type == STOP_HALT) {
-          log("Stop requested");
-          saveCurrentLevelAndKnown(this->_currentLevel);
-          this->_reached = true;
-        } else if(stop_type == STOP_NEW_LEVEL) {
-          log("New target");
-        }
-      }
+  if (_level == LEVEL_NONE) {
+    if (_state != STATE_RESETTING) {
+      _up();
+      _state = STATE_RESETTING;
+      _stateTime = millis();
+    } else if (millis() - _stateTime >= _courseTime + _calibrationTime) {
+      _halt();
+      _state = STATE_IDLE;
+      _level = 0;
+      _setStateCallback(_level);
     }
+
+    return;
   }
+
+  // here, level is known
+
+  if (_state == STATE_IDLE && _targetLevel == LEVEL_NONE) return; // nothing to do
+
+  if (_state == STATE_CALIBRATING) {
+    if (millis() - _stateTime >= _calibrationTime) {
+      _halt();
+      _state = STATE_IDLE;
+      _setStateCallback(_level);
+    }
+
+    return;
+  }
+
+  // here, level is known and calibrated, and we need to do something
+
+  if (_state == STATE_IDLE) {
+    reset();
+    _direction = _targetLevel > _level ? DIRECTION_DOWN : DIRECTION_UP;
+    _direction == DIRECTION_UP ? _up() : _down();
+    _state = STATE_TARGETING;
+    _stateTime = millis();
+
+    return;
+  }
+
+  // here, we have to handle targeting and normalizing
+
+  if (millis() - _stateTime < _stepTime) return;
+
+  _level += _direction == DIRECTION_UP ? -1 : 1;
+  _stateTime = millis();
+
+  if (_level == 0 || _level == 100) {
+    _state = STATE_CALIBRATING;
+    if (_level == _targetLevel) _targetLevel = LEVEL_NONE;
+
+    return;
+  }
+
+  if (_state == STATE_NORMALIZING) {
+    _halt();
+    _state = STATE_IDLE;
+    if (_targetLevel == LEVEL_NONE) _setStateCallback(_level);
+
+    return;
+  }
+
+  if (_state == STATE_TARGETING && _level == _targetLevel) {
+    _halt();
+    _state = STATE_IDLE;
+    _targetLevel = LEVEL_NONE;
+    _setStateCallback(_level);
+  }
+}
+
+bool Shutters::isIdle() {
+  return _state == STATE_IDLE;
+}
+
+uint8_t Shutters::getCurrentLevel() {
+  return _level;
+}
+
+void Shutters::reset() {
+  _reset = true;
+  _setStateCallback(LEVEL_NONE);
 }

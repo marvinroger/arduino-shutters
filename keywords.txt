@@ -9,13 +9,12 @@ Shutters	KEYWORD1
 #######################################
 
 begin	KEYWORD2
+setLevel	KEYWORD2
+stop  KEYWORD2
 loop	KEYWORD2
-requestLevel	KEYWORD2
-stop	KEYWORD2
-moving	KEYWORD2
-reached	KEYWORD2
-currentLevel	KEYWORD2
-eraseSavedState	KEYWORD2
+isIdle	KEYWORD2
+getCurrentLevel	KEYWORD2
+reset	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

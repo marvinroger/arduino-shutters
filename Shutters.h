@@ -2,60 +2,62 @@
 #define Shutters_h
 
 #include <Arduino.h>
-#include <EEPROM.h>
 
 namespace ShuttersInternal {
-  const int CALIBRATION_LEVELS = 5;
-  const int LEVELS = 100;
+  const uint16_t SAFETY_DELAY = 1 * 1000;
+  const uint8_t LEVELS = 100;
 
-  enum Stop : unsigned char { STOP_NONE, STOP_NEW_LEVEL, STOP_HALT };
+  enum State : uint8_t {
+    STATE_IDLE, // not moving
+    STATE_RESETTING, // when state not known, goes to 0
+    STATE_TARGETING, // when going to target
+    STATE_NORMALIZING, // when target changed, goes to next known level
+    STATE_CALIBRATING // when 0 or 100, to ensure actually at the end
+  };
   enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
-  const unsigned char REQUEST_NONE = 255; // Request must be between 0 and 100, so np
-  const unsigned char CALIBRATION_NONE = 255; // CALIBRATION_LEVELS should not be 255, np
-
-  const unsigned char FLAG_KNOWN = 0x80;
-  const unsigned char MASK_CURRENT_LEVEL = 0x7F;
+  const uint8_t LEVEL_NONE = 255; // level must be between 0 and 100, so np
 }
 
 class Shutters {
 private:
-  unsigned char _currentLevel;
-  bool _moving;
-  bool _reached;
-  unsigned char _targetLevel;
-  unsigned char _requestLevel;
-  ShuttersInternal::Stop _stopNeeded;
-  unsigned long _timeLastLevel;
+  uint32_t _courseTime;
+  float _calibrationRatio;
+  uint32_t _stepTime;
+  uint32_t _calibrationTime;
+
+  ShuttersInternal::State _state;
+  uint32_t _stateTime;
   ShuttersInternal::Direction _direction;
-  unsigned char _calibration;
 
-  unsigned char _eepromPosition;
+  uint8_t _level;
 
-  float _delayTotal;
-  float _delayOneLevel;
+  uint8_t _targetLevel;
+
+  bool _safetyDelay;
+  uint32_t _safetyDelayTime;
+
+  bool _reset;
+
   void (*_upCallback)(void);
   void (*_downCallback)(void);
   void (*_haltCallback)(void);
 
-  void log(const char* text);
-  void log(String text);
-  void up();
-  void down();
-  void halt();
-  bool savedIsLastLevelKnown();
-  void saveLastLevelUnknown();
-  unsigned char savedCurrentLevel();
-  void saveCurrentLevelAndKnown(unsigned char level);
+  uint8_t (*_getStateCallback)(void);
+  void (*_setStateCallback)(uint8_t);
+
+  void _up();
+  void _down();
+  void _halt();
+  void _setSafetyDelay();
 public:
-  Shutters(float delay_total, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), unsigned char eeprom_offset = 0);
+  Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio = 0.1);
   bool begin();
-  void loop();
-  void requestLevel(unsigned char level);
+  void setLevel(uint8_t level);
   void stop();
-  bool moving();
-  bool reached();
-  unsigned char currentLevel();
-  void eraseSavedState();
+  void loop();
+  bool isIdle();
+  uint8_t getCurrentLevel();
+  void reset();
 };
 
 #endif
