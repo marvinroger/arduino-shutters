@@ -115,7 +115,7 @@ void Shutters::loop() {
   // here, level is known and calibrated, and we need to do something
 
   if (_state == STATE_IDLE) {
-    reset();
+    setStateCallback(LEVEL_NONE);
     _direction = _targetLevel > _level ? DIRECTION_DOWN : DIRECTION_UP;
     _direction == DIRECTION_UP ? _up() : _down();
     _state = STATE_TARGETING;
