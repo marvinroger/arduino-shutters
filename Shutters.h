@@ -45,12 +45,15 @@ private:
   uint8_t (*_getStateCallback)(void);
   void (*_setStateCallback)(uint8_t);
 
+  void (*_onLevelReachedCallback)(uint8_t);
+
   void _up();
   void _down();
   void _halt();
   void _setSafetyDelay();
+  void _notifyLevel();
 public:
-  Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio = 0.1);
+  Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio = 0.1, void (*onLevelReachedCallback)(uint8_t) = nullptr);
   bool begin();
   void setLevel(uint8_t level);
   void stop();

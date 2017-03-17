@@ -27,15 +27,16 @@ to make the shutters go halfway (50%) for example. So I built this library.
 
 See examples folder for examples.
 
-#### Shutters (unsigned long `courseTime`, void (\*`upCallback`)(void), void (\*`downCallback`)(void), void (\*`haltCallback`)(void), byte (\*`getStateCallback`)(void), void (\*`setStateCallback`)(byte state), float `calibrationRatio` = 0.1)
+#### Shutters (unsigned long `courseTime`, void (\*`upCallback`)(void), void (\*`downCallback`)(void), void (\*`haltCallback`)(void), byte (\*`getStateCallback`)(void), void (\*`setStateCallback`)(byte state), float `calibrationRatio` = 0.1, void (\*`onLevelReachedCallback`)(byte level))
 
 * **`courseTime`**: Time in milliseconds to do a full shutters course
-* **`upCallback`**: Function to execute for the shutters to go up
-* **`downCallback`**: Function to execute for the shutters to go down
-* **`haltCallback`**: Function to execute for the shutters to halt
-* **`getStateCallback`**: Function to get state. This must return the state byte, or 255 if you don't know the state byte (on first boot)
+* **`upCallback()`**: Function to execute for the shutters to go up
+* **`downCallback()`**: Function to execute for the shutters to go down
+* **`haltCallback()`**: Function to execute for the shutters to halt
+* **`getStateCallback()`**: Function to get state. This must return the state byte, or 255 if you don't know the state byte (on first boot)
 * **`setStateCallback(byte state)`**: Function to set the state byte. Store this in the EEPROM of SPIFFS, etc.
 * **`calibrationRatio`**: The calibration ratio. If the full course is 30 sec. and the ratio is 0.1, the calibration time will be 30 * 0.1 = 3 sec. Defaults to 0.1
+* **`onLevelReachedCallback(byte level)`**: Function to be called whenever a new level is reached
 
 #### bool .begin ()
 

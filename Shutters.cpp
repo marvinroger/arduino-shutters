@@ -2,7 +2,7 @@
 
 using namespace ShuttersInternal;
 
-Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio)
+Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio, void (*onLevelReachedCallback)(uint8_t))
 : _courseTime(courseTime)
 , _calibrationRatio(calibrationRatio)
 , _stepTime(courseTime / LEVELS)
@@ -20,6 +20,7 @@ Shutters::Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCal
 , _haltCallback(haltCallback)
 , _getStateCallback(getStateCallback)
 , _setStateCallback(setStateCallback)
+, _onLevelReachedCallback(onLevelReachedCallback)
 {
 }
 
@@ -41,9 +42,14 @@ void Shutters::_setSafetyDelay() {
   _safetyDelay = true;
 }
 
+void Shutters::_notifyLevel() {
+  if (_onLevelReachedCallback) _onLevelReachedCallback(_level);
+}
+
 bool Shutters::begin() {
   _level = _getStateCallback();
   if (_level > 100) _level = LEVEL_NONE;
+  if (_level != LEVEL_NONE) _notifyLevel();
 }
 
 void Shutters::setLevel(uint8_t level) {
@@ -93,6 +99,7 @@ void Shutters::loop() {
       _state = STATE_IDLE;
       _level = 0;
       _setStateCallback(_level);
+      _notifyLevel();
     }
 
     return;
@@ -129,6 +136,7 @@ void Shutters::loop() {
   if (millis() - _stateTime < _stepTime) return;
 
   _level += _direction == DIRECTION_UP ? -1 : 1;
+  _notifyLevel();
   _stateTime = millis();
 
   if (_level == 0 || _level == 100) {

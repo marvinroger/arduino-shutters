@@ -1,6 +1,7 @@
 #include <Shutters.h>
 
-unsigned long courseTime = 30 * 1000;
+const unsigned long courseTime = 30 * 1000;
+const float calibrationRatio = 0.1;
 
 void shuttersUp() {
   Serial.println("Shutters going up.");
@@ -27,7 +28,13 @@ void shuttersSetState(uint8_t state) {
   Serial.println(".");
 }
 
-Shutters shutters(courseTime, shuttersUp, shuttersDown, shuttersHalt, shuttersGetState, shuttersSetState);
+void onShuttersLevelReached(uint8_t level) {
+  Serial.print("Shutters at ");
+  Serial.print(level);
+  Serial.println("%");
+}
+
+Shutters shutters(courseTime, shuttersUp, shuttersDown, shuttersHalt, shuttersGetState, shuttersSetState, calibrationRatio, onShuttersLevelReached);
 
 void setup() {
   Serial.begin(9600);
