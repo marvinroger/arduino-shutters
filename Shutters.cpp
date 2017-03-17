@@ -43,6 +43,7 @@ void Shutters::_setSafetyDelay() {
 
 bool Shutters::begin() {
   _level = _getStateCallback();
+  if (_level > 100) _level = LEVEL_NONE;
 }
 
 void Shutters::setLevel(uint8_t level) {
