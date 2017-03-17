@@ -46,7 +46,7 @@ void Shutters::_notifyLevel() {
   if (_onLevelReachedCallback) _onLevelReachedCallback(_level);
 }
 
-bool Shutters::begin() {
+void Shutters::begin() {
   _level = _getStateCallback();
   if (_level > 100) _level = LEVEL_NONE;
   if (_level != LEVEL_NONE) _notifyLevel();

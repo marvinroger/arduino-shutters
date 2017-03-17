@@ -54,7 +54,7 @@ private:
   void _notifyLevel();
 public:
   Shutters(uint32_t courseTime, void (*upCallback)(void), void (*downCallback)(void), void (*haltCallback)(void), uint8_t (*getStateCallback)(void), void (*setStateCallback)(uint8_t), float calibrationRatio = 0.1, void (*onLevelReachedCallback)(uint8_t) = nullptr);
-  bool begin();
+  void begin();
   void setLevel(uint8_t level);
   void stop();
   void loop();

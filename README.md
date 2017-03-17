@@ -40,7 +40,7 @@ See examples folder for examples.
 * **`calibrationRatio`**: The calibration ratio. If the full course is 30 sec. and the ratio is 0.1, the calibration time will be 30 * 0.1 = 3 sec. Defaults to 0.1
 * **`onLevelReachedCallback(byte level)`**: Function to be called whenever a new level is reached
 
-#### bool .begin ()
+#### void .begin ()
 
 Setup the shutters. Must be called once in `setup()`.
 
