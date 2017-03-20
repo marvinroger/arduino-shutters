@@ -1,6 +1,6 @@
 # Arduino Shutters
 
-[![Build Status](https://travis-ci.org/marvinroger/arduino-shutters.svg?branch=master)](https://travis-ci.org/marvinroger/arduino-shutters)
+[![Build Status](https://travis-ci.org/marvinroger/arduino-shutters.svg?branch=master)](https://travis-ci.org/marvinroger/arduino-shutters) [![Latest version](https://img.shields.io/github/release/marvinroger/arduino-shutters.svg)](https://github.com/marvinroger/arduino-shutters/releases/latest)
 
 This Arduino library allows non-smart roller-shutters to be percentage-controlled using time.
 Using relays, it is easy to make shutters go up and down. But I wanted to be able
