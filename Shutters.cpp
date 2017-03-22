@@ -139,14 +139,14 @@ void Shutters::loop() {
   _level += _direction == DIRECTION_UP ? -1 : 1;
   _stateTime = millis();
 
-  if (_level == 0 || _level == 100) {
+  if (_level == 0 || _level == 100) { // we need to calibrate
     _state = STATE_CALIBRATING;
     if (_level == _targetLevel) _targetLevel = LEVEL_NONE;
 
     return;
   }
 
-  if (_state == STATE_NORMALIZING) {
+  if (_state == STATE_NORMALIZING) { // we've finished normalizing
     _halt();
     _state = STATE_IDLE;
     _notifyLevel();
@@ -155,13 +155,19 @@ void Shutters::loop() {
     return;
   }
 
-  if (_state == STATE_TARGETING && _level == _targetLevel) {
+  if (_state == STATE_TARGETING && _level == _targetLevel) { // we've reached out trarget
     _halt();
     _state = STATE_IDLE;
     _targetLevel = LEVEL_NONE;
     _notifyLevel();
     _setStateCallback(_level);
+
+    return;
   }
+
+  // we've reached an intermediary level
+
+  _notifyLevel();
 }
 
 bool Shutters::isIdle() {
