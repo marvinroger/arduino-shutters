@@ -113,6 +113,7 @@ void Shutters::loop() {
     if (millis() - _stateTime >= _calibrationTime) {
       _halt();
       _state = STATE_IDLE;
+      _notifyLevel();
       _setStateCallback(_level);
     }
 
@@ -136,7 +137,6 @@ void Shutters::loop() {
   if (millis() - _stateTime < _stepTime) return;
 
   _level += _direction == DIRECTION_UP ? -1 : 1;
-  _notifyLevel();
   _stateTime = millis();
 
   if (_level == 0 || _level == 100) {
@@ -149,6 +149,7 @@ void Shutters::loop() {
   if (_state == STATE_NORMALIZING) {
     _halt();
     _state = STATE_IDLE;
+    _notifyLevel();
     if (_targetLevel == LEVEL_NONE) _setStateCallback(_level);
 
     return;
@@ -158,6 +159,7 @@ void Shutters::loop() {
     _halt();
     _state = STATE_IDLE;
     _targetLevel = LEVEL_NONE;
+    _notifyLevel();
     _setStateCallback(_level);
   }
 }
