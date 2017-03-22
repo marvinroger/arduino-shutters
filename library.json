@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "keywords": "shutters, relays",
   "description": "Allows non-smart roller-shutters to be percentage-controlled using time",
-  "homepage": "https://github.com/marvinroger/homie-esp8266",
+  "homepage": "https://github.com/marvinroger/arduino-shutters",
   "license": "MIT",
   "authors":
   {
