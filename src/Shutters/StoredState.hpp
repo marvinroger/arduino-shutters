@@ -8,12 +8,12 @@ namespace ShuttersInternal {
 
   class StoredState {
   private:
-    // 2^26
-    uint32_t _upCourseTime;
-    // 2^26
-    uint32_t _downCourseTime;
+    // 2^26 but 64 for bitwise (otherwise bitwise shift does not work well)
+    uint64_t _upCourseTime;
+    // 2^26 but 64 for bitwise
+    uint64_t _downCourseTime;
     // 2^7
-    uint8_t _level;
+    uint64_t _level;
     // this leaves 5 bits for another feature for 64 bits
 
   public:

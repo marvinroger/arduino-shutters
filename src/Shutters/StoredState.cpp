@@ -62,8 +62,8 @@ void StoredState::setDownCourseTime(uint32_t downCourseTime) {
 
 uint64_t StoredState::getState() {
   uint64_t upCourseTime = _upCourseTime << 38;
-  uint32_t downCourseTime = _downCourseTime << 12;
-  uint32_t level = (_level + LEVEL_OFFSET) << 7;
+  uint64_t downCourseTime = _downCourseTime << 12;
+  uint64_t level = (_level + LEVEL_OFFSET) << 5;
 
   return upCourseTime | downCourseTime | level;
 }

@@ -20,8 +20,8 @@ namespace ShuttersInternal {
   enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
 
   typedef void (*OperationFunction)(::Shutters*);
-  typedef uint32_t (*GetStateFunction)(::Shutters*);
-  typedef void (*SetStateFunction)(::Shutters*, uint32_t);
+  typedef uint64_t (*GetStateFunction)(::Shutters*);
+  typedef void (*SetStateFunction)(::Shutters*, uint64_t);
   typedef void (*LevelReachedCallback)(::Shutters*, uint8_t);
 }
 
@@ -41,11 +41,13 @@ private:
 
   ShuttersInternal::StoredState _storedState;
 
+  uint8_t _currentLevel;
   uint8_t _targetLevel;
 
   bool _safetyDelay;
   uint32_t _safetyDelayTime;
 
+  bool _init;
   bool _reset;
 
   ShuttersInternal::OperationFunction _upFunction;
