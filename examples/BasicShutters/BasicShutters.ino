@@ -34,6 +34,9 @@ char* shuttersGetState(Shutters* shutters, uint8_t length) {
 void shuttersSetState(Shutters* shutters, const char* state, uint8_t length) {
   for (uint8_t i = 0; i < length; i++) {
     EEPROM.write(eepromOffset + i, state[i]);
+    #ifdef ESP8266
+    EEPROM.commit();
+    #endif
   }
 }
 
@@ -47,6 +50,11 @@ Shutters shutters(shuttersUp, shuttersDown, shuttersHalt, shuttersGetState, shut
 
 void setup() {
   Serial.begin(9600);
+  delay(100);
+  #ifdef ESP8266
+  EEPROM.begin(512);
+  #endif
+  Serial.println("Starting");
   shutters.setCourseTime(upCourseTime, downCourseTime);
   shutters.begin();
 

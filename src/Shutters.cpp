@@ -77,6 +77,8 @@ void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
 
   if (!_init) {
     char* state = _getStateFunction(this, STATE_LENGTH);
+    DPRINT(F("Shutters: stored state is"));
+    DPRINTLN(state);
     _storedState.feed(state);
     free(state);
     if (_storedState.isValid()) {
