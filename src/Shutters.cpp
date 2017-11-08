@@ -76,7 +76,9 @@ void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
   }
 
   if (!_init) {
-    _storedState.feed(_getStateFunction(this));
+    char* state = _getStateFunction(this, STATE_LENGTH);
+    _storedState.feed(state);
+    free(state);
     if (_storedState.isValid()) {
       DPRINTLN(F("Shutters: Stored state is valid"));
       _currentLevel = _storedState.getLevel();
@@ -109,7 +111,7 @@ void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
   _downCalibrationTime = downCourseTime * _calibrationRatio;
   _storedState.setDownCourseTime(downCourseTime);
 
-  _setStateFunction(this, _storedState.getState());
+  _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
 }
 
 float Shutters::getCalibrationRatio() {
@@ -188,7 +190,7 @@ void Shutters::loop() {
       _state = STATE_IDLE;
       _currentLevel = 0;
       _storedState.setLevel(_currentLevel);
-      _setStateFunction(this, _storedState.getState());
+      _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
       _notifyLevel();
     }
 
@@ -206,7 +208,7 @@ void Shutters::loop() {
       _halt();
       _state = STATE_IDLE;
       _notifyLevel();
-      _setStateFunction(this, _storedState.getState());
+      _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
     }
 
     return;
@@ -218,7 +220,7 @@ void Shutters::loop() {
     DPRINTLN(F("Shutters: starting move"));
     _direction = (_targetLevel > _currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
     _storedState.setLevel(LEVEL_NONE);
-    _setStateFunction(this, _storedState.getState());
+    _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
     (_direction == DIRECTION_UP) ? _up() : _down();
     _state = STATE_TARGETING;
     _stateTime = millis();
@@ -249,7 +251,7 @@ void Shutters::loop() {
     _halt();
     _state = STATE_IDLE;
     _notifyLevel();
-    if (_targetLevel == LEVEL_NONE) _setStateFunction(this, _storedState.getState());
+    if (_targetLevel == LEVEL_NONE) _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
 
     return;
   }
@@ -260,7 +262,7 @@ void Shutters::loop() {
     _state = STATE_IDLE;
     _targetLevel = LEVEL_NONE;
     _notifyLevel();
-    _setStateFunction(this, _storedState.getState());
+    _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
 
     return;
   }
@@ -281,6 +283,6 @@ uint8_t Shutters::getCurrentLevel() {
 void Shutters::reset() {
   _halt();
   _storedState.reset();
-  _setStateFunction(this, _storedState.getState());
+  _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
   _reset = true;
 }

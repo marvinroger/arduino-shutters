@@ -5,6 +5,7 @@
 namespace ShuttersInternal {
   const uint8_t LEVEL_OFFSET = 28;
   const uint8_t LEVEL_NONE = 255; // level must be between 0 and 100, so np
+  const uint8_t STATE_LENGTH = 20; // max representation of uint64
 
   class StoredState {
   private:
@@ -16,9 +17,11 @@ namespace ShuttersInternal {
     uint64_t _level;
     // this leaves 5 bits for another feature for 64 bits
 
+    char _state[STATE_LENGTH + 1];
+
   public:
     StoredState();
-    void feed(uint64_t state);
+    void feed(const char* state);
     bool isValid();
     uint8_t getLevel();
     void setLevel(uint8_t level);
@@ -26,7 +29,7 @@ namespace ShuttersInternal {
     void setUpCourseTime(uint32_t upCourseTime);
     uint32_t getDownCourseTime();
     void setDownCourseTime(uint32_t downCourseTime);
-    uint64_t getState();
+    const char* getState();
     void reset();
   };
 }

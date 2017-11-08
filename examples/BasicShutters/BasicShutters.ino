@@ -1,6 +1,9 @@
 #include <Shutters.h>
+#include <EEPROM.h>
 
-const unsigned long courseTime = 30 * 1000;
+const uint8_t eepromOffset = 0;
+const uint64_t upCourseTime = 30 * 1000;
+const uint64_t downCourseTime = 45 * 1000;
 const float calibrationRatio = 0.1;
 
 void shuttersUp(Shutters* shutters) {
@@ -18,14 +21,20 @@ void shuttersHalt(Shutters* shutters) {
   // TODO: Implement the code for the shutters to halt
 }
 
-uint32_t shuttersGetState(Shutters* shutters) {
-  return 255;
+char* shuttersGetState(Shutters* shutters, uint8_t length) {
+  char state[length + 1];
+  for (uint8_t i = 0; i < length; i++) {
+    state[i] = EEPROM.read(eepromOffset + i);
+  }
+  state[length] = '\0';
+
+  return strdup(state);
 }
 
-void shuttersSetState(Shutters* shutters, uint32_t state) {
-  Serial.print("Saving state ");
-  Serial.print(state);
-  Serial.println(".");
+void shuttersSetState(Shutters* shutters, const char* state, uint8_t length) {
+  for (uint8_t i = 0; i < length; i++) {
+    EEPROM.write(eepromOffset + i, state[i]);
+  }
 }
 
 void onShuttersLevelReached(Shutters* shutters, uint8_t level) {
@@ -38,6 +47,7 @@ Shutters shutters(shuttersUp, shuttersDown, shuttersHalt, shuttersGetState, shut
 
 void setup() {
   Serial.begin(9600);
+  shutters.setCourseTime(upCourseTime, downCourseTime);
   shutters.begin();
 
   shutters.setLevel(50); // Go to 50%
