@@ -79,7 +79,7 @@ Can be called anytime, takes effect immediately.
 
 * **`calibrationRatio`**: Calibration ratio. E.g. `0.5` means "50% of the course time". For example, if your course time is `10000`, and the calibration ratio is `0.2`, then, when we `setLevel()` to `0` or `100`, the shutters will move for `0.2 * 10000 = 2000`ms more than normal. That way, we can ensure we are actually at `0` or `100` and thus, that we are calibrated.
 
-### Shutters& onLevelReached(void (\*`levelReachedCallback`)(Shutters* shutters, byte level))
+#### Shutters& onLevelReached(void (\*`levelReachedCallback`)(Shutters* shutters, byte level))
 
 Set the level reached handler. This handler will be called whenever a new level is reached, along with intermediary levels. E.g. if the levels are at 10% and you request 15%, the callback will be called for 11, 12, 13, 14 and 15%.
 
