@@ -70,9 +70,9 @@ uint32_t Shutters::getDownCourseTime() {
 }
 
 
-void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
+Shutters& Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
   if (!_reset) {
-    return;
+    return *this;
   }
 
   if (!_init) {
@@ -92,10 +92,10 @@ void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
     _init = true;
   }
 
-  if (upCourseTime > 67108864UL|| upCourseTime == 0) return; // max value for 26 bits
+  if (upCourseTime > 67108864UL|| upCourseTime == 0) return *this; // max value for 26 bits
   // if down course time is not set, consider it's the same as up
   if (downCourseTime == 0) downCourseTime = upCourseTime;
-  if (downCourseTime > 67108864UL) return; // max value for 26 bits
+  if (downCourseTime > 67108864UL) return *this; // max value for 26 bits
 
   if (upCourseTime != _storedState.getUpCourseTime() || downCourseTime != _storedState.getDownCourseTime()) {
     DPRINTLN(F("Shutters: course time is not the same, invalidating stored state"));
@@ -114,60 +114,72 @@ void Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime) {
   _storedState.setDownCourseTime(downCourseTime);
 
   _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
+
+  return *this;
 }
 
 float Shutters::getCalibrationRatio() {
   return _calibrationRatio;
 }
 
-void Shutters::setCalibrationRatio(float calibrationRatio) {
+Shutters& Shutters::setCalibrationRatio(float calibrationRatio) {
   _calibrationRatio = calibrationRatio;
   _upCalibrationTime = _upCourseTime * calibrationRatio;
   _downCalibrationTime = _downCourseTime * calibrationRatio;
+
+  return *this;
 }
 
-void Shutters::onLevelReached(ShuttersInternal::LevelReachedCallback callback) {
+Shutters& Shutters::onLevelReached(ShuttersInternal::LevelReachedCallback callback) {
   _levelReachedCallback = callback;
+
+  return *this;
 }
 
-void Shutters::begin() {
-  if (_upCourseTime == 0 || _downCourseTime == 0) return;
+Shutters& Shutters::begin() {
+  if (_upCourseTime == 0 || _downCourseTime == 0) return *this;
 
   _reset = false;
+
+  return *this;
 }
 
-void Shutters::setLevel(uint8_t level) {
+Shutters& Shutters::setLevel(uint8_t level) {
   if (_reset) {
-    return;
+    return *this;
   }
 
   if (level > 100) {
-    return;
+    return *this;
   }
 
-  if (_state == STATE_IDLE && level == _currentLevel) return;
-  if ((_state == STATE_TARGETING || _state == STATE_NORMALIZING) && level == _targetLevel) return; // normalizing check useless, but avoid following lines overhead
+  if (_state == STATE_IDLE && level == _currentLevel) return *this;
+  if ((_state == STATE_TARGETING || _state == STATE_NORMALIZING) && level == _targetLevel) return *this; // normalizing check useless, but avoid following lines overhead
 
   _targetLevel = level;
   Direction direction = (_targetLevel > _currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
   if (_state == STATE_TARGETING && _direction != direction) {
     _state = STATE_NORMALIZING;
   }
+
+  return *this;
 }
 
-void Shutters::stop() {
-  if (_reset) return;
+Shutters& Shutters::stop() {
+  if (_reset) return *this;
 
-  if (_state == STATE_IDLE) return;
+  if (_state == STATE_IDLE) return *this;
 
   _targetLevel = LEVEL_NONE;
   if (_state == STATE_TARGETING) {
     _state = STATE_NORMALIZING;
   }
+
+  return *this;
 }
 
-void Shutters::loop() {
-  if (_reset) return;
+Shutters& Shutters::loop() {
+  if (_reset) return *this;
 
   if (_safetyDelay) {
     if (millis() - _safetyDelayTime >= SAFETY_DELAY) {
@@ -175,7 +187,7 @@ void Shutters::loop() {
       _safetyDelay = false;
     }
 
-    return;
+    return *this;
   }
 
   // here, we're safe for relays
@@ -196,12 +208,12 @@ void Shutters::loop() {
       _notifyLevel();
     }
 
-    return;
+    return *this;
   }
 
   // here, level is known
 
-  if (_state == STATE_IDLE && _targetLevel == LEVEL_NONE) return; // nothing to do
+  if (_state == STATE_IDLE && _targetLevel == LEVEL_NONE) return *this; // nothing to do
 
   if (_state == STATE_CALIBRATING) {
     const uint32_t calibrationTime = (_direction == DIRECTION_UP) ? _upCalibrationTime : _downCalibrationTime;
@@ -213,7 +225,7 @@ void Shutters::loop() {
       _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
     }
 
-    return;
+    return *this;
   }
 
   // here, level is known and calibrated, and we need to do something
@@ -227,14 +239,14 @@ void Shutters::loop() {
     _state = STATE_TARGETING;
     _stateTime = millis();
 
-    return;
+    return *this;
   }
 
   // here, we have to handle targeting and normalizing
 
   const uint32_t stepTime = (_direction == DIRECTION_UP) ? _upStepTime : _downStepTime;
 
-  if (millis() - _stateTime < stepTime) return;
+  if (millis() - _stateTime < stepTime) return *this;
 
   _currentLevel += (_direction == DIRECTION_UP) ? -1 : 1;
   _storedState.setLevel(_currentLevel);
@@ -245,7 +257,7 @@ void Shutters::loop() {
     _state = STATE_CALIBRATING;
     if (_currentLevel == _targetLevel) _targetLevel = LEVEL_NONE;
 
-    return;
+    return *this;
   }
 
   if (_state == STATE_NORMALIZING) { // we've finished normalizing
@@ -255,7 +267,7 @@ void Shutters::loop() {
     _notifyLevel();
     if (_targetLevel == LEVEL_NONE) _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
 
-    return;
+    return *this;
   }
 
   if (_state == STATE_TARGETING && _currentLevel == _targetLevel) { // we've reached out target
@@ -266,12 +278,14 @@ void Shutters::loop() {
     _notifyLevel();
     _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
 
-    return;
+    return *this;
   }
 
   // we've reached an intermediary level
 
   _notifyLevel();
+
+  return *this;
 }
 
 bool Shutters::isIdle() {
@@ -282,9 +296,15 @@ uint8_t Shutters::getCurrentLevel() {
   return _currentLevel;
 }
 
-void Shutters::reset() {
+Shutters& Shutters::reset() {
   _halt();
   _storedState.reset();
   _setStateFunction(this, _storedState.getState(), STATE_LENGTH);
   _reset = true;
+
+  return *this;
+}
+
+bool Shutters::isReset() {
+  return _reset;
 }

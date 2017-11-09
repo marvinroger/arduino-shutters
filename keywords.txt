@@ -9,8 +9,8 @@ Shutters	KEYWORD1
 #######################################
 
 getUpCourseTime	KEYWORD2
-setCourseTime	KEYWORD2
 getDownCourseTime	KEYWORD2
+setCourseTime	KEYWORD2
 getCalibrationRatio	KEYWORD2
 setCalibrationRatio	KEYWORD2
 onLevelReached	KEYWORD2
@@ -21,6 +21,7 @@ loop	KEYWORD2
 isIdle	KEYWORD2
 getCurrentLevel	KEYWORD2
 reset	KEYWORD2
+isReset	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

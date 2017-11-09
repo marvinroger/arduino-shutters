@@ -22,7 +22,7 @@ namespace ShuttersInternal {
   typedef void (*OperationFunction)(::Shutters*);
   typedef char* (*GetStateFunction)(::Shutters*, uint8_t length);
   typedef void (*SetStateFunction)(::Shutters*, const char* state, uint8_t length);
-  typedef void (*LevelReachedCallback)(::Shutters*, uint8_t);
+  typedef void (*LevelReachedCallback)(::Shutters*, uint8_t level);
 }
 
 class Shutters {
@@ -68,15 +68,16 @@ public:
   Shutters(ShuttersInternal::OperationFunction up, ShuttersInternal::OperationFunction down, ShuttersInternal::OperationFunction halt, ShuttersInternal::GetStateFunction getState, ShuttersInternal::SetStateFunction setState);
   uint32_t getUpCourseTime();
   uint32_t getDownCourseTime();
-  void setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime = 0);
+  Shutters& setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime = 0);
   float getCalibrationRatio();
-  void setCalibrationRatio(float calibrationRatio);
-  void onLevelReached(ShuttersInternal::LevelReachedCallback callback);
-  void begin();
-  void setLevel(uint8_t level);
-  void stop();
-  void loop();
+  Shutters& setCalibrationRatio(float calibrationRatio);
+  Shutters& onLevelReached(ShuttersInternal::LevelReachedCallback callback);
+  Shutters& begin();
+  Shutters& setLevel(uint8_t level);
+  Shutters& stop();
+  Shutters& loop();
   bool isIdle();
   uint8_t getCurrentLevel();
-  void reset();
+  Shutters& reset();
+  bool isReset();
 };
