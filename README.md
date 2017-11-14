@@ -30,13 +30,9 @@ to make the shutters go halfway (50%) for example. So I built this library.
 
 See examples folder for examples.
 
-#### Shutters (void (\*`upCallback`)(Shutters* shutters), void (\*`downCallback`)(Shutters* shutters), void (\*`haltCallback`)(Shutters* shutters), const char* (\*`getStateCallback`)(Shutters* shutters, byte length), void (\*`setStateCallback`)(Shutters* shutters, const char* state, byte length))
+#### Shutters ()
 
-* **`upCallback()`**: Function to execute for the shutters to go up
-* **`downCallback()`**: Function to execute for the shutters to go down
-* **`haltCallback()`**: Function to execute for the shutters to halt
-* **`getStateCallback()`**: Function called to get the stored state. This must return the state char array of the given length
-* **`setStateCallback()`**: Function called to set the stored state. Store this in the EEPROM of SPIFFS, etc.
+Instantiate a Shutters instance.
 
 #### Shutters& .begin ()
 
