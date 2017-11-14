@@ -23,14 +23,10 @@ void shuttersOperationHandler(Shutters* s, ShuttersOperation operation) {
   }
 }
 
-char* shuttersReadStateHandler(Shutters* shutters, byte length) {
-  char state[length + 1];
-  for (uint8_t i = 0; i < length; i++) {
-    state[i] = EEPROM.read(eepromOffset + i);
+void readInEeprom(char* dest, byte length) {
+  for (byte i = 0; i < length; i++) {
+    dest[i] = EEPROM.read(eepromOffset + i);
   }
-  state[length] = '\0';
-
-  return strdup(state);
 }
 
 void shuttersWriteStateHandler(Shutters* shutters, const char* state, byte length) {
@@ -58,10 +54,13 @@ void setup() {
   #endif
   Serial.println();
   Serial.println("*** Starting ***");
+
+  char storedShuttersState[shutters.getStateLength()];
+  readInEeprom(&storedShuttersState, shutters.getStateLength());
   shutters
     .setOperationHandler(shuttersOperationHandler)
-    .setReadStateHandler(shuttersReadStateHandler)
     .setWriteStateHandler(shuttersWriteStateHandler)
+    .restoreState(storedShuttersState)
     .setCourseTime(upCourseTime, downCourseTime)
     .onLevelReached(onShuttersLevelReached)
     .begin()

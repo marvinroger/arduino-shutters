@@ -62,13 +62,17 @@ Must be called at least one time, before `setCourseTime()`.
 
 * **`handler`**: Operation handler
 
-#### Shutters& .setReadStateHandler (ReadStateHandler `handler`)
+#### byte .getStateLength ()
 
-Set the read state handler.
+Return the state length.
 
-Must be called at least one time, before `setCourseTime()`.
+#### Shutters& .restoreState (const char* `state`)
 
-* **`handler`**: Read state handler
+Restore the shutters state.
+
+Must be called before `setCourseTime()`.
+
+* **`state`**: Latest stored state
 
 #### Shutters& .setWriteStateHandler (WriteStateHandler `handler`)
 

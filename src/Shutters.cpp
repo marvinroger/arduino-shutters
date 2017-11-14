@@ -1,13 +1,4 @@
-#include "Shutters.hpp"
-
-// #define DEBUG
-#ifdef DEBUG
-  #define DPRINT(...)    Serial.print(__VA_ARGS__)
-  #define DPRINTLN(...)  Serial.println(__VA_ARGS__)
-#else
-  #define DPRINT(...)
-  #define DPRINTLN(...)
-#endif
+#include "Shutters.h"
 
 using namespace ShuttersInternal;
 
@@ -23,10 +14,8 @@ Shutters::Shutters()
 , _targetLevel(LEVEL_NONE)
 , _safetyDelay(false)
 , _safetyDelayTime(0)
-, _init(false)
 , _reset(true)
 , _operationHandler(nullptr)
-, _readStateHandler(nullptr)
 , _writeStateHandler(nullptr)
 , _levelReachedCallback(nullptr)
 {
@@ -73,8 +62,24 @@ Shutters& Shutters::setOperationHandler(ShuttersInternal::OperationHandler handl
   return *this;
 }
 
-Shutters& Shutters::setReadStateHandler(ShuttersInternal::ReadStateHandler handler) {
-  _readStateHandler = handler;
+uint8_t Shutters::getStateLength() {
+  return STATE_LENGTH;
+}
+
+Shutters& Shutters::restoreState(const char* state) {
+  if (!_reset) {
+    return *this;
+  }
+
+  _storedState.feed(state);
+
+  if (_storedState.isValid()) {
+    DPRINTLN(F("Shutters: Stored state is valid"));
+    _currentLevel = _storedState.getLevel();
+    _notifyLevel();
+  } else {
+    DPRINTLN(F("Stored state is invalid"));
+  }
 
   return *this;
 }
@@ -90,25 +95,8 @@ Shutters& Shutters::setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime
     return *this;
   }
 
-  if (!_readStateHandler || !_writeStateHandler) {
+  if (!_writeStateHandler) {
     return *this;
-  }
-
-  if (!_init) {
-    char* state = _readStateHandler(this, STATE_LENGTH);
-    DPRINT(F("Shutters: stored state is"));
-    DPRINTLN(state);
-    _storedState.feed(state);
-    free(state);
-    if (_storedState.isValid()) {
-      DPRINTLN(F("Shutters: Stored state is valid"));
-      _currentLevel = _storedState.getLevel();
-      _notifyLevel();
-    } else {
-      DPRINTLN(F("Stored state is invalid"));
-    }
-
-    _init = true;
   }
 
   if (upCourseTime > 67108864UL|| upCourseTime == 0) return *this; // max value for 26 bits

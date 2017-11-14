@@ -12,7 +12,8 @@ ShuttersOperation	KEYWORD1
 getUpCourseTime	KEYWORD2
 getDownCourseTime	KEYWORD2
 setOperationHandler	KEYWORD2
-setReadStateHandler	KEYWORD2
+restoreState	KEYWORD2
+getStateLength	KEYWORD2
 setWriteStateHandler	KEYWORD2
 setCourseTime	KEYWORD2
 getCalibrationRatio	KEYWORD2
