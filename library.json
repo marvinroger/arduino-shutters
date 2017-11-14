@@ -1,6 +1,6 @@
 {
   "name": "Shutters",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "keywords": "shutters, relays",
   "description": "Allows non-smart roller-shutters to be percentage-controlled using time",
   "homepage": "https://github.com/marvinroger/arduino-shutters",
