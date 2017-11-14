@@ -3,6 +3,7 @@
 #######################################
 
 Shutters	KEYWORD1
+ShuttersOperation	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -10,6 +11,9 @@ Shutters	KEYWORD1
 
 getUpCourseTime	KEYWORD2
 getDownCourseTime	KEYWORD2
+setOperationHandler	KEYWORD2
+setReadStateHandler	KEYWORD2
+setWriteStateHandler	KEYWORD2
 setCourseTime	KEYWORD2
 getCalibrationRatio	KEYWORD2
 setCalibrationRatio	KEYWORD2
@@ -26,3 +30,7 @@ isReset	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+UP	LITERAL1
+DOWN	LITERAL1
+HALT	LITERAL1

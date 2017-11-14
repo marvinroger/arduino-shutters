@@ -58,11 +58,35 @@ Returns the up course time or `0` if not yet `begin()`.
 
 Returns the down course time or `0` if not yet `begin()`.
 
+#### Shutters& .setOperationHandler (OperationHandler `handler`)
+
+Set the operation handler.
+
+Must be called at least one time, before `setCourseTime()`.
+
+* **`handler`**: Operation handler
+
+#### Shutters& .setReadStateHandler (ReadStateHandler `handler`)
+
+Set the read state handler.
+
+Must be called at least one time, before `setCourseTime()`.
+
+* **`handler`**: Read state handler
+
+#### Shutters& .setWriteStateHandler (WriteStateHandler `handler`)
+
+Set the write state handler.
+
+Must be called at least one time, before `setCourseTime()`.
+
+* **`handler`**: Write state handler
+
 #### Shutters& .setCourseTime (unsigned long `upCourseTime`, unsigned long `downCourseTime` = 0)
 
 Set the course time. If `downCourseTime` is not set, it will be the same as `upCourseTime`.
 
-Must be called at least one time, before `setup()`. Calling it after `setup()` will have no effect (unless `reset()` has been called).
+Must be called at least one time, before `setup()` and after `setOperationHandler(), setReadStateHandler() and setWriteStateHandler()`. Calling it after `setup()` will have no effect (unless `reset()` has been called).
 
 * **`upCourseTime`**: Up course time, in milliseconds. Must be max 67108864, otherwise it will have no effect
 * **`downCourseTime`**: Down course time, in milliseconds. Must be max 67108864, otherwise it will have no effect

@@ -2,6 +2,8 @@
 
 #include "Arduino.h"
 
+#include "ShuttersOperation.hpp"
+
 #include "Shutters/StoredState.hpp"
 
 class Shutters;
@@ -19,10 +21,10 @@ namespace ShuttersInternal {
   };
   enum Direction : bool { DIRECTION_DOWN, DIRECTION_UP };
 
-  typedef void (*OperationFunction)(::Shutters*);
-  typedef char* (*GetStateFunction)(::Shutters*, uint8_t length);
-  typedef void (*SetStateFunction)(::Shutters*, const char* state, uint8_t length);
-  typedef void (*LevelReachedCallback)(::Shutters*, uint8_t level);
+  typedef void (*OperationHandler)(::Shutters* s, ::ShuttersOperation operation);
+  typedef char* (*ReadStateHandler)(::Shutters* s, uint8_t length);
+  typedef void (*WriteStateHandler)(::Shutters* s, const char* state, uint8_t length);
+  typedef void (*LevelReachedCallback)(::Shutters* s, uint8_t level);
 }
 
 class Shutters {
@@ -50,12 +52,10 @@ private:
   bool _init;
   bool _reset;
 
-  ShuttersInternal::OperationFunction _upFunction;
-  ShuttersInternal::OperationFunction _downFunction;
-  ShuttersInternal::OperationFunction _haltFunction;
+  ShuttersInternal::OperationHandler _operationHandler;
 
-  ShuttersInternal::GetStateFunction _getStateFunction;
-  ShuttersInternal::SetStateFunction _setStateFunction;
+  ShuttersInternal::ReadStateHandler _readStateHandler;
+  ShuttersInternal::WriteStateHandler _writeStateHandler;
 
   ShuttersInternal::LevelReachedCallback _levelReachedCallback;
 
@@ -65,9 +65,12 @@ private:
   void _setSafetyDelay();
   void _notifyLevel();
 public:
-  Shutters(ShuttersInternal::OperationFunction up, ShuttersInternal::OperationFunction down, ShuttersInternal::OperationFunction halt, ShuttersInternal::GetStateFunction getState, ShuttersInternal::SetStateFunction setState);
+  Shutters();
   uint32_t getUpCourseTime();
   uint32_t getDownCourseTime();
+  Shutters& setOperationHandler(ShuttersInternal::OperationHandler handler);
+  Shutters& setReadStateHandler(ShuttersInternal::ReadStateHandler handler);
+  Shutters& setWriteStateHandler(ShuttersInternal::WriteStateHandler handler);
   Shutters& setCourseTime(uint32_t upCourseTime, uint32_t downCourseTime = 0);
   float getCalibrationRatio();
   Shutters& setCalibrationRatio(float calibrationRatio);
