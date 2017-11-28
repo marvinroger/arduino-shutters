@@ -56,7 +56,7 @@ void setup() {
   Serial.println("*** Starting ***");
 
   char storedShuttersState[shutters.getStateLength()];
-  readInEeprom(&storedShuttersState, shutters.getStateLength());
+  readInEeprom(storedShuttersState, shutters.getStateLength());
   shutters
     .setOperationHandler(shuttersOperationHandler)
     .setWriteStateHandler(shuttersWriteStateHandler)
