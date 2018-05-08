@@ -76,6 +76,8 @@ Shutters& Shutters::restoreState(const char* state) {
   if (_storedState.isValid()) {
     DPRINTLN(F("Shutters: Stored state is valid"));
     _currentLevel = _storedState.getLevel();
+	_downCourseTime = _storedState.getDownCourseTime();
+	_upCourseTime = _storedState.getUpCourseTime();
     _notifyLevel();
   } else {
     DPRINTLN(F("Stored state is invalid"));
