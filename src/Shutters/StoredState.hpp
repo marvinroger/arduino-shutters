@@ -3,7 +3,7 @@
 #include "Arduino.h"
 
 namespace ShuttersInternal {
-  const uint8_t LEVEL_OFFSET = 28;
+  const uint8_t LEVEL_OFFSET = 27;
   const uint8_t LEVEL_NONE = 255; // level must be between 0 and 100, so np
   const uint8_t STATE_LENGTH = 20; // max representation of uint64
 
