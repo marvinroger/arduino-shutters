@@ -21,7 +21,7 @@ setCalibrationRatio	KEYWORD2
 onLevelReached	KEYWORD2
 begin	KEYWORD2
 setLevel	KEYWORD2
-stop  KEYWORD2
+stop	KEYWORD2
 loop	KEYWORD2
 isIdle	KEYWORD2
 getCurrentLevel	KEYWORD2
