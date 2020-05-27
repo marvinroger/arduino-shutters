@@ -5,7 +5,7 @@ using namespace ShuttersInternal;
 StoredState::StoredState()
 : _upCourseTime(0)
 , _downCourseTime(0)
-, _level(0)
+, _level(LEVEL_NONE)
 {
 }
 
@@ -37,7 +37,7 @@ void StoredState::feed(const char* state) {
 bool StoredState::isValid() {
   bool upCourseTimeValid = _upCourseTime > 0;
   bool downCourseTimeValid = _downCourseTime > 0;
-  bool levelValid = _level <= 100;
+  bool levelValid = _level <= 100 || _level == LEVEL_NONE;
 
   return upCourseTimeValid && downCourseTimeValid && levelValid;
 }
@@ -92,5 +92,5 @@ const char* StoredState::getState() {
 void StoredState::reset() {
   _upCourseTime = 0;
   _downCourseTime = 0;
-  _level = 0;
+  _level = LEVEL_NONE;
 }

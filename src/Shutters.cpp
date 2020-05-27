@@ -158,6 +158,18 @@ Shutters& Shutters::setLevel(uint8_t level) {
     return *this;
   }
 
+  if(_state == STATE_RESETTING) {
+    return *this;
+  }
+
+  if (_currentLevel == LEVEL_NONE) {
+    if(level != 0 && level != 100) {
+      return *this;
+    }
+    _targetLevel = level;
+    return *this;
+  }
+
   if (level > 100) {
     return *this;
   }
@@ -177,7 +189,7 @@ Shutters& Shutters::setLevel(uint8_t level) {
 Shutters& Shutters::stop() {
   if (_reset) return *this;
 
-  if (_state == STATE_IDLE) return *this;
+  if (_state == STATE_IDLE || _state == STATE_RESETTING) return *this;
 
   _targetLevel = LEVEL_NONE;
   if (_state == STATE_TARGETING) {
@@ -201,27 +213,6 @@ Shutters& Shutters::loop() {
 
   // here, we're safe for relays
 
-  if (_currentLevel == LEVEL_NONE) {
-    if (_state != STATE_RESETTING) {
-      DPRINTLN(F("Shutters: level not known, resetting"));
-      _up();
-      _state = STATE_RESETTING;
-      _stateTime = millis();
-    } else if (millis() - _stateTime >= _upCourseTime + _upCalibrationTime) {
-      DPRINTLN(F("Shutters: level now known"));
-      _halt();
-      _state = STATE_IDLE;
-      _currentLevel = 0;
-      _storedState.setLevel(_currentLevel);
-      _writeStateHandler(this, _storedState.getState(), STATE_LENGTH);
-      _notifyLevel();
-    }
-
-    return *this;
-  }
-
-  // here, level is known
-
   if (_state == STATE_IDLE && _targetLevel == LEVEL_NONE) return *this; // nothing to do
 
   if (_state == STATE_CALIBRATING) {
@@ -241,12 +232,33 @@ Shutters& Shutters::loop() {
 
   if (_state == STATE_IDLE) {
     DPRINTLN(F("Shutters: starting move"));
-    _direction = (_targetLevel > _currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
+    if(_currentLevel == LEVEL_NONE) {
+      _direction = _targetLevel == 0 ? DIRECTION_UP : DIRECTION_DOWN;
+      _state = STATE_RESETTING;
+    } else {
+      _direction = (_targetLevel > _currentLevel) ? DIRECTION_DOWN : DIRECTION_UP;
+      _state = STATE_TARGETING;
+    }
     _storedState.setLevel(LEVEL_NONE);
     _writeStateHandler(this, _storedState.getState(), STATE_LENGTH);
     (_direction == DIRECTION_UP) ? _up() : _down();
-    _state = STATE_TARGETING;
     _stateTime = millis();
+
+    return *this;
+  }
+
+  // here, we have to handle resetting
+  if (_state == STATE_RESETTING) {
+    if (millis() - _stateTime >= ((_direction == DIRECTION_UP) ? (_upCourseTime + _upCalibrationTime) : (_downCourseTime + _downCalibrationTime))) {
+      DPRINTLN(F("Shutters: level now known"));
+      _halt();
+      _state = STATE_IDLE;
+      _currentLevel = _targetLevel;
+      _targetLevel = LEVEL_NONE;
+      _storedState.setLevel(_currentLevel);
+      _writeStateHandler(this, _storedState.getState(), STATE_LENGTH);
+      _notifyLevel();
+    }
 
     return *this;
   }
